@@ -27,6 +27,7 @@ model Level {
   title       String
   author      String?
   place       Int     @default(autoincrement())
+  difficulty  Demon   @default(EASY)
   completions User[]
   video       String?
 }
@@ -36,4 +37,12 @@ model ApiKey {
   user   User?  @relation(fields: [userId], references: [id])
   userId Int?
   expirationDate DateTime?
+}
+
+enum Demon {
+  EXTREME
+  INSANE
+  HARD
+  MEDIUM
+  EASY
 }

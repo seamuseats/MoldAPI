@@ -232,16 +232,26 @@ export async function registerUser(req: Request, res: Response){
     const discordid = requestform.discordid;
     const uname = requestform.uname;
 
-    if(!discordid && !uname) {res.status(400).send('I need an indetifier to add a user!'); return;}
-
-    await db.user.create({
-        data : {
-            discordid: discordid,
-            name: uname
+    const checkUser = (await db.user.findFirst({
+        where: {
+            discordid: discordid
         }
-    }).catch((error) =>{
-        res.status(400).send('failed to add user to MOLD. Sorry');
-        return;
-    });
-    res.status(200).send(`successfully added ${uname} as a user to the MOLD`);
+    }) as User);
+    if(!checkUser){
+        if(!discordid && !uname) {res.status(400).send('I need an indetifier to add a user!'); return;}
+
+        await db.user.create({
+            data : {
+                discordid: discordid,
+                name: uname
+            }
+        }).catch((error) =>{
+            res.status(400).send('failed to add user to MOLD. Sorry');
+            return;
+        });
+        res.status(200).send(`successfully added ${uname} as a user to the MOLD`);
+    }
+    else{
+        res.status(200).send(`${uname} is already a member of the mold`);
+    }
 }
