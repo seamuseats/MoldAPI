@@ -37,6 +37,7 @@ export async function updateWithID(i: Level){
         data: {
             author: level.Meta.creator,
             difficulty: (level.Meta.Difficulty as string).toUpperCase() as Demon,
+            video: i.video? i.video : `https://youtube.com/watch?v=${level.Showcase}`
         }
     });
 }
