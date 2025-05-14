@@ -1,30 +1,20 @@
 import { Request, Response } from 'express';
 import express from 'express';
-import { db, placeLevel, completeLevel, moveLevel, levelBoard, registerUser } from './moldapi';
-import { Axios } from 'axios';
-import { updateFromGDDL } from './externalapi/gddl';
+import { db, placeLevel, completeLevel, moveLevel, levelBoard, registerUser, moldUpdateLevel } from './moldapi';
+import { createWithID, setIDwithName, sleep, updateFromGDDL } from './externalapi/gddl';
+import { genKey } from './keygen';
+import { ParsedQs } from 'qs';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
 
-app.post('/api/placelevel', (req, res) => {placeLevel(req, res);});
-app.post('/api/completelevel', (req, res) => {completeLevel(req, res);});
-app.post('/api/movelevel', (req, res) => {moveLevel(req, res);});
-app.post('/api/registeruser', (req, res) => {registerUser(req, res);});
-
-app.get('/api/levelboard', (req, res) => {levelBoard(req, res);});
-
-app.get('/', (req: Request, res: Response) =>{
-    res.send('Hello, Website currently in progress. Please use the discord bot for now :)');
-});
-
 app.use('/api', async function(req: Request, res: Response, next){
     var key = req.query['api-key'];
   
     // key isn't present
-    if (!key) return next((res: Response) => {res.status(400).send('key required');});
+    if (!key) return next((res: Response) => {res.status(418).send('key required'); return;});
 
     const authapikey = await db.apiKey.findFirst({
         where: { key: key as string }
@@ -35,7 +25,25 @@ app.use('/api', async function(req: Request, res: Response, next){
     next();
 });
 
+app.post('/api/placelevel', (req, res) => {placeLevel(req, res);});
+app.post('/api/completelevel', (req, res) => {completeLevel(req, res);});
+app.post('/api/movelevel', (req, res) => {moveLevel(req, res);});
+app.post('/api/registeruser', (req, res) => {registerUser(req, res);});
+app.post('/api/updatelevel', (req, res) => {moldUpdateLevel(req, res);});
+
+app.get('/api/levelboard', (req, res) => {levelBoard(req, res);});
+app.get('/', (req: Request, res: Response) =>{
+    res.send('Hello, Website currently in progress. Please use the discord bot for now :)');
+});
+
+
+
 async function main() {
+    // const levels = await readJsonFile('./temp_data/mold.json');
+    // for(const level of levels){
+    //     createWithID(level.ID, level.Placement);
+    //     await sleep(1000);
+    // }
     app.listen(port, () => {
         console.log(`Mold API listening on port ${port}`);
         setInterval(updateFromGDDL, 1000 * 60 * 10);

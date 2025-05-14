@@ -67,7 +67,36 @@ export async function placeLevel(req: Request, res: Response){
             })
         ]);
     }
-    res.status(200).send('Successfully added level to MOLD');
+    res.status(201).send('Successfully added level to MOLD');
+}
+
+export async function moldUpdateLevel(req: Request, res: Response){
+    const requestform = await req.body;
+    console.log(requestform + 'level update');
+
+    if(!requestform.levelid){
+        res.status(400).send('Please provide a levelid');
+        return;
+    }
+
+    try{
+        await db.level.update({
+            where: {
+                id: requestform.levelid
+            },
+            data: {
+                title: requestform.title,
+                author: requestform.author,
+                difficulty: requestform.difficulty,
+                video: requestform.video
+            }
+        });
+    }
+    catch{
+        res.status(400).send('Level Update unsuccessful. Was the ID valid?');
+        return;
+    }
+    res.status(201).send(`Level updated successfully`);
 }
 
 export async function completeLevel(req: Request, res: Response){
@@ -202,28 +231,6 @@ export async function moveLevel(req: Request, res: Response){
     }
 }
 
-export async function levelBoard(req: Request, res: Response){
-    console.log('fetching levelboard');
-    const top = req.query['n-tries'] as unknown as number;
-
-    const levels = (await db.level.findMany({
-        orderBy: {
-            place: "asc"
-        },
-        include: {
-            completions: true
-        },
-        take: top
-    }) as Level[]);
-
-    if(!levels){
-        res.status(400).send('bad number of entries');
-        return;
-    }
-
-    res.status(200).send(levels);
-}
-
 export async function registerUser(req: Request, res: Response){
     console.log('Resitering a new user');
 
@@ -231,6 +238,7 @@ export async function registerUser(req: Request, res: Response){
 
     const discordid = requestform.discordid;
     const uname = requestform.uname;
+    const passhash = requestform.passhash;
 
     const checkUser = (await db.user.findFirst({
         where: {
@@ -239,19 +247,51 @@ export async function registerUser(req: Request, res: Response){
     }) as User);
     if(!checkUser){
         if(!discordid && !uname) {res.status(400).send('I need an indetifier to add a user!'); return;}
+        else if(uname && !passhash && !discordid) {res.status(400).send('I need a password hash to store with this user'); return;}
+        else res.status(202);
 
         await db.user.create({
             data : {
                 discordid: discordid,
-                name: uname
+                name: uname,
+                passHash: passhash
             }
-        }).catch((error) =>{
+        }).catch((error) =>{ 
             res.status(400).send('failed to add user to MOLD. Sorry');
             return;
         });
-        res.status(200).send(`successfully added ${uname} as a user to the MOLD`);
+        res.status(201).send(`successfully added ${uname} as a user to the MOLD`);
     }
     else{
         res.status(200).send(`${uname} is already a member of the mold`);
     }
 }
+
+// GET requests
+
+export async function levelBoard(req: Request, res: Response){
+    console.log('fetching levelboard');
+
+    const entries = req.headers['entries'] as string;
+    var parsedentries = Number.parseInt(entries);
+    console.log(req.headers);
+    if(!parsedentries) parsedentries = await db.level.count();
+
+    const levels = (await db.level.findMany({
+        orderBy: {
+            place: "asc"
+        },
+        include: {
+            completions: true
+        },
+        take: parsedentries
+    }) as Level[]);
+
+    if(!levels){
+        res.status(400).send('bad number of entries');
+        return;
+    }
+
+    res.status(200).send(JSON.stringify(levels));
+}
+
