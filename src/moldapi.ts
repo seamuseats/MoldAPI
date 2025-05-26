@@ -295,3 +295,40 @@ export async function levelBoard(req: Request, res: Response){
     res.status(200).send(JSON.stringify(levels));
 }
 
+export async function authenticateUser(req: Request, res: Response){
+    console.log('authenticating user');
+
+    const uname = req.query['uname'];
+    const passHash = req.query['password'];
+    const token = req.query['token'];
+
+    if(!uname) {res.status(400).send('{ auth: false }'); return;}
+    else if(!passHash && !token) {res.status(400).send('{ auth: false }'); return;}
+
+    if(passHash){
+        await db.user.findFirstOrThrow({
+            where : {
+                passHash: passHash as string,
+                name: uname as string
+            },
+        }).then((user: User) => {
+            res.status(200).send(`{ auth: true, message: "authenticated ${uname} successfully"}`);
+        }).catch((error) => {
+            res.status(400).send(`{ auth: false, message: "${error.message}"}`);
+        });
+    }
+
+    else{
+        await db.user.findFirstOrThrow({
+            where : {
+                passHash: token as string,
+                name: uname as string
+            },
+        }).then((user: User) => {
+            res.status(200).send(`{ auth: true, message: "authenticated ${uname} successfully"}`);
+        }).catch((error) => {
+            res.status(400).send(`{ auth: false, message: "${error.message}"}`);
+        });
+    }
+}
+

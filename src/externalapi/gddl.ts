@@ -16,9 +16,9 @@ export async function updateFromGDDL(){
     
     for (const i of levels) {
         await sleep(1000);
-        updateWithID(i);
+        await updateWithID(i);
     }
-    
+    console.log('Updated list from GDDL');
 }
 
 export async function updateWithID(i: Level){
@@ -27,7 +27,7 @@ export async function updateWithID(i: Level){
             Accept: 'application/json'
         }
     }).then((message) => {
-        console.log(message);
+        // console.log(message);
         return message;
     });
     const level = JSON.parse(response.data);
@@ -68,7 +68,7 @@ export async function createWithID(id: string, placement: string){
         return message;
     });
     const level = JSON.parse(response.data);
-    if(level.Meta.Difficulty == 'OFFICIAL') { level.Meta.Difficulty = 'MEDIUM'; };
+    if(level.Meta.Difficulty == 'OFFICIAL') { level.Meta.Difficulty = 'MEDIUM' as Demon; };
     await db.level.create({
         data: {
             id: Number.parseInt(id as string),
