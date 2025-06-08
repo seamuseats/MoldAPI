@@ -64,7 +64,6 @@ export async function createWithID(id: string, placement: string){
             Accept: 'application/json'
         }
     }).then((message) => {
-        console.log(message);
         return message;
     });
     const level = JSON.parse(response.data);
@@ -75,7 +74,10 @@ export async function createWithID(id: string, placement: string){
             place: Number.parseInt(placement as string),
             title: level.Meta.Name,
             author: level.Meta.Creator? level.Meta.Creator : '',
-            //difficulty: (level.Meta.Difficulty as string).toUpperCase() as Demon,
+            difficulty: (level.Meta.Difficulty == 'Official')? "MEDIUM" : level.Meta.Difficulty.toUpperCase(),
+            // completions: {
+            //     connect: completions
+            // },
             video: level.Showcase? `https://youtube.com/watch?v=${level.Showcase}` : ""
         }
     }).then(() => {
@@ -107,12 +109,15 @@ export async function setIDwithName(name: string, creator?: string){
         const levels = await readJsonFile('./temp_data/mold.json');
         // updateAllValues('./temp_data/mold.json', (level) => {
         //     return searchResult.levels[0].ID as number;
-        // })
+        // });
+        console.log(levels);
                 
         // 2. Modify each element
-        const targetLevel = levels.find((element, index) => {
+        var targetLevel = levels.find((element) => {
             return element.Level == name;
         });
+
+        console.log(targetLevel);
 
         targetLevel.ID = searchResult.levels[0].ID.toString();
 

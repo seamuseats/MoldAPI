@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { Level, PrismaClient, User } from '../generated/prisma';
+import { Demon, Level, PrismaClient, User } from '../generated/prisma';
 import { equal } from 'assert';
 import { Types } from '../generated/prisma/runtime/library';
 
@@ -18,11 +18,12 @@ export async function placeLevel(req: Request, res: Response){
 
     var userid = await requestform.userid as number;
     var discordid = await requestform.discordid as string;
-    var levelid = await requestform.levelid as number;
+    var levelid = await requestform.levelid as string;
     var title = await requestform.title as string;
     var placement = await requestform.placement as number;
     var video = await requestform.video as string;
     var author = await requestform.author as string;
+    var difficulty = await requestform.difficulty as string;
 
     if (!userid && !discordid) res.status(400).send('Please provide a userid or discord id');
     else if (!levelid) res.status(400).send('level id required');
@@ -53,11 +54,12 @@ export async function placeLevel(req: Request, res: Response){
             }),
             db.level.create({
                 data: {
-                    id: levelid,
+                    id: Number.parseInt(levelid),
                     title: title as string,
                     place: placement,
                     video: video,
                     author: author,
+                    difficulty: difficulty as Demon,
                     completions: {
                         connect: {
                             id: userid
@@ -66,8 +68,8 @@ export async function placeLevel(req: Request, res: Response){
                 }
             })
         ]);
+        res.status(201).send('Successfully added level to MOLD');
     }
-    res.status(201).send('Successfully added level to MOLD');
 }
 
 export async function moldUpdateLevel(req: Request, res: Response){

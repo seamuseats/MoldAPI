@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import express from 'express';
 import { db, placeLevel, completeLevel, moveLevel, levelBoard, registerUser, moldUpdateLevel, authenticateUser } from './moldapi';
-import { updateFromGDDL } from './externalapi/gddl';
+import { createWithID, setIDwithName, sleep, updateFromGDDL } from './externalapi/gddl';
+import { addCompletionsFromJson, readJsonFile } from './updatedb';
 
 const app = express();
 const port = 3000;
@@ -12,6 +13,7 @@ app.get('/api/levelboard', (req, res) => {levelBoard(req, res);});
 app.get('/', (req: Request, res: Response) =>{
     res.send('Hello, Website currently in progress. Please use the discord bot for now :)');
 });
+app.post('/api/placelevel', (req, res) => {placeLevel(req, res);});
 
 app.use('/api', async function(req: Request, res: Response, next){
     var key = req.headers['api-key'];
@@ -28,7 +30,6 @@ app.use('/api', async function(req: Request, res: Response, next){
     next();
 });
 
-app.post('/api/placelevel', (req, res) => {placeLevel(req, res);});
 app.post('/api/completelevel', (req, res) => {completeLevel(req, res);});
 app.post('/api/movelevel', (req, res) => {moveLevel(req, res);});
 app.post('/api/registeruser', (req, res) => {registerUser(req, res);});
@@ -40,8 +41,10 @@ app.post('/api/authenticate', (req, res) => {authenticateUser(req, res)});
 async function main() {
     // const levels = await readJsonFile('./temp_data/mold.json');
     // for(const level of levels){
-    //     await createWithID(level.ID, level.Placement);
-    //     await sleep(1000);
+    //     // await setIDwithName(level.Level, level.Publisher);
+    //     // await createWithID(level.ID, level.Placement);
+    //     await addCompletionsFromJson(level);
+    //     // await sleep(1000);
     // }
     app.listen(port, () => {
         console.log(`Mold API listening on port ${port}`);
