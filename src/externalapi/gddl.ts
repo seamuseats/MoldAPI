@@ -32,7 +32,7 @@ export async function updateWithID(i: Level){
     });
     const level = JSON.parse(response.data);
     if(level.Meta.Difficulty == "Official"){ level.Meta.Difficulty = undefined; }
-    if(i.video != "https://youtube.com/watch?v=null"){
+    if(i.video != "https://youtube.com/watch?v=null" || !i.video){
         await db.level.update({
             where : {
                 id: i.id
@@ -52,7 +52,16 @@ export async function updateWithID(i: Level){
             data: {
                 author: level.Meta.Creator,
                 difficulty: (level.Meta.Difficulty as string).toUpperCase() as Demon,
-                video: !level.Showcase? '' : `https://youtube.com/watch?v=${level.Showcase}`
+            }
+        });
+    }
+    if(i.video == '' || i.video == 'https://youtube.com/watch?v=null'){
+        await db.level.update({
+            where: {
+                id: i.id
+            },
+            data: {
+                video: null
             }
         });
     }
