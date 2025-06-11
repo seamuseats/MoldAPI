@@ -5,7 +5,7 @@ import { createWithID, setIDwithName, sleep, updateFromGDDL } from './externalap
 import { addCompletionsFromJson, readJsonFile } from './updatedb';
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.use(express.json());
 
